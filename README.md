@@ -50,7 +50,7 @@ Concise solutions for OpenZeppelin's Ethernaut CTF. Detailed write-ups pending.
 
 
 ```js
-// We call the functions in the order as suggested 
+// Call the functions in the order as suggested 
 > await contract.info()
 < 'You will find what you need in info1().'
 
@@ -61,7 +61,7 @@ Concise solutions for OpenZeppelin's Ethernaut CTF. Detailed write-ups pending.
 < 'The property infoNum holds the number of the next info method to call.'
 
 > await contract.infoNum()
-// We expand to reveal "42"
+// Expand to reveal "42"
 
 > await contract.info42()
 < 'theMethodName is the name of the next method.'
@@ -72,6 +72,7 @@ Concise solutions for OpenZeppelin's Ethernaut CTF. Detailed write-ups pending.
 > await contract.method7123949()
 < 'If you know the password, submit it to authenticate().'
 
+// Query the ABI to locate the password() function
 > await contract.password()
 < 'ethernaut0'
 
