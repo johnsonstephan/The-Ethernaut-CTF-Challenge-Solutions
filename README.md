@@ -74,6 +74,6 @@ Brief solutions for OpenZeppelin's Ethernaut CTF. Writeups pending.
 < 'ethernaut0'
 
 > await contract.authenticate("ethernaut0")
-```js
+```
 
 Submit the instance and the zeroth level is completed.
