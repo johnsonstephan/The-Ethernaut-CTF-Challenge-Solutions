@@ -60,7 +60,7 @@ Concise solutions for OpenZeppelin's Ethernaut CTF. Detailed write-ups pending.
 > await contract.info2("hello")
 < 'The property infoNum holds the number of the next info method to call.'
 
-> x = contract.infoNum()
+> contract.infoNum()
 // We expand the promise to reveal "42"
 
 > await contract.info42()
