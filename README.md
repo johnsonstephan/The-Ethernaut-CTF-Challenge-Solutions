@@ -10,6 +10,8 @@ Brief solutions for OpenZeppelin's Ethernaut CTF. Writeups pending.
 [Level 1: Fallback](#Fallback)  
 [Level 2: Fallout](#Fallout)  
 
+<!---
+
 **Pending**
 
 [Level 3: Coin Flip](#CoinFlip)  
@@ -37,7 +39,7 @@ Brief solutions for OpenZeppelin's Ethernaut CTF. Writeups pending.
 [Level 25: Motorbike](#Motorbike)  
 [Level 26: Double Entry Point](#DoubleEntryPoint)  
 [Level 27: Good Samaritan](#GoodSamaritan)  
-
+-->
 
 ## Requirements
 - [Metamask](https://metamask.io/)
