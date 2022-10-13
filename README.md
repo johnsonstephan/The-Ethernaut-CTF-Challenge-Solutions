@@ -49,7 +49,7 @@ Brief solutions for OpenZeppelin's Ethernaut CTF. Writeups pending.
 > This level walks you through the very basics of how to play the game.
 
 ```js
-// We call the functions in the order as suggested
+// Call the functions in the order as suggested
 > await contract.info()
 < 'You will find what you need in info1().'
 
@@ -60,7 +60,7 @@ Brief solutions for OpenZeppelin's Ethernaut CTF. Writeups pending.
 < 'The property infoNum holds the number of the next info method to call.'
 
 > x = contract.infoNum()
-// We expand the promise to reveal "42"
+// Expand the promise to reveal "42"
 
 > await contract.info42()
 < 'theMethodName is the name of the next method.'
@@ -71,6 +71,7 @@ Brief solutions for OpenZeppelin's Ethernaut CTF. Writeups pending.
 > await contract.method7123949()
 < 'If you know the password, submit it to authenticate().'
 
+// Query the ABI to locate the password() function
 > await contract.password()
 < 'ethernaut0'
 
