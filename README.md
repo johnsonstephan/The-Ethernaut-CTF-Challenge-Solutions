@@ -119,10 +119,10 @@ await contract.owner();
 In order to solve, we have a few objectives:
 
 1. Set the contract instance as our target contract
-2. Recreate the flip() function
-3. Pass the flip() output into the target instance
+2. Recreate the `flip()` function
+3. Pass the `flip()` output into the target instance
 
-Let's begin with recreating a portion of the flip() function. We will replicate useful variables of the original function.
+Let's begin with recreating a portion of the `flip()` function. We will replicate useful variables of the original function.
 
 ```js
 uint256 lastHash;
@@ -143,7 +143,7 @@ constructor(address _targetAddr) public {
   }
 ```
 
-Let's replicate the remaining essential aspects of the flip() function. This completes our second objective.
+Let's replicate the remaining essential aspects of the `flip()` function. This completes our second objective.
 
 ```js
   function flipSolve() public returns (bool) {
