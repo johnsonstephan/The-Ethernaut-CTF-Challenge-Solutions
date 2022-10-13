@@ -161,4 +161,4 @@ Finally, we will pass the side value into the original contract, ensuring our gu
 ```js
 targetContract.flip(side);
 ```
-We patiently call `flipSolve()` 10 times 
+We patiently call `flipSolve()` 10 times until we have guessed correctly 10 times and solve the level.
