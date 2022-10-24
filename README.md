@@ -12,11 +12,11 @@ Brief solutions for OpenZeppelin's Ethernaut CTF. Writeups pending.
 [Level 3: Coin Flip](#CoinFlip)   
 [Level 4: Telephone](#Telephone)   
 [Level 5: Token](#Token)
+[Level 6: Delegation](#Delegation)
 
 <!---
 
 **Pending**
-[Level 6: Delegation](#Delegation)
 [Level 7: Force](#Force)
 [Level 8: Vault](#Vault)
 [Level 9: King](#King)
@@ -230,3 +230,41 @@ We will use the `transfer()` function for this exploit, which requires two input
 ```
 
 Fortunately, the Solidity compiler now rejects code resulting in an underflow or overflow, as of v0.8.0. For contracts with previous compiler versions -- like this one -- [OpenZeppelin's SafeMath library](https://docs.openzeppelin.com/contracts/4.x/api/utils#SafeMath) is suggested. 
+
+## <a name='Delegation'></a> 6. Delegation
+
+> The goal of this level is to claim ownership of the instance you are given.
+
+Essentially, `delegatecall` allows a calling contract to use the functions of another contract while preserving its context (i.e., `address(this)`, `msg.sender`, `msg.value`). Additionally, the calling contract will execute on its own storage and state variables. 
+
+Our goal -- claiming ownership -- can be achieved by executing the `pwn()` function of the `Delegate` contract, which will sets `owner` equal to `msg.sender`. If we execute `pwn()` as a `delegatecall` from the `Delegation`  instance, we can claim ownership (due to `msg.sender` being preserved from the calling `Delegation` contract). 
+
+Fortunately, both the `Delegation` and `Delegate` contracts  designate slot 0 for `owner`, which will ensure we can easily update ownership. To pull off the change of ownership, we'll call the `fallback()` function and specify `msg.data` as the `pwn()` function. 
+
+Before we specify `msg.data`, the level hints reminds us about method ID. We recall that we can create Method IDs to call a function, as noted [here](https://ethereum.stackexchange.com/questions/78179/how-to-create-function-selector-method-ids). So, to specify `msg.data` as the `pwn()` function, we will pass the first four bytes of the Keccak-256 hash (according to the [ABI specs](http://solidity.readthedocs.io/en/latest/abi-spec.html#function-selector)). 
+
+Let’s create a variable to hold the `msg.data` information. The `web3.eth.abi` functions allow us to encode and decode parameters to ABI for function calls to the EVM -- as stated in the [Web3.js documentation](https://web3js.readthedocs.io/en/v1.2.11/web3.html). The `encodeFunctionSignature` function encodes the function name to its ABI signature, which are the first 4 bytes of the hash of the function name. 
+
+ `let msgdata = web3.eth.abi.encodeFunctionSignature("pwn()”)`.
+
+To trigger the `fallback()` function, we’ll use `sendTransaction()` and specify the `from`, `to`, and `data` parameters. 
+
+`contract.sendTransaction({from: player, to:instance, data: msgdata})`
+
+Let’s put this together and execute the transfer of ownership.
+
+```solidity
+// Check who is the initial owner of the `Delegation` contract
+> await contract.owner()
+< '0x716747Fbc1FcE4c36F2B369F87aDB5D4580e807f'
+
+// Create and set our variable for `msg.data`
+> let msgdata = web3.eth.abi.encodeFunctionSignature("pwn()")
+
+// Trigger the fallback function, with our specified `msg.data` to call the `pwn()` function
+contract.sendTransaction({from:player, to:instance, data:msgdata})
+
+// Verify we have claimed ownership of the contract instance 
+> await contract.owner()
+< 0x... // reflects the player address
+```
