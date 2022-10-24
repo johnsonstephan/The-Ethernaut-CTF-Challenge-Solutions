@@ -11,7 +11,7 @@ Brief solutions for OpenZeppelin's Ethernaut CTF. Writeups pending.
 [Level 2: Fallout](#Fallout)    
 [Level 3: Coin Flip](#CoinFlip)   
 [Level 4: Telephone](#Telephone)   
-[Level 5: Token](#Token)
+[Level 5: Token](#Token)  
 [Level 6: Delegation](#Delegation)
 
 <!---
