@@ -338,6 +338,6 @@ contract ForceFeedEther {
 < '10'
 ```
 
-![](Images/Boom%20Cat.png)
+![BoomCat](Images/BoomCat.png)
 
 Submit instance for completion.
